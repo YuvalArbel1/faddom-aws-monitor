@@ -1,21 +1,21 @@
-const { EC2Client, DescribeInstancesCommand} = require("@aws-sdk/client-ec2");
-const { CloudWatchClient, GetMetricStatisticsCommand } = require("@aws-sdk/client-cloudwatch");
+const {EC2Client, DescribeInstancesCommand} = require("@aws-sdk/client-ec2");
+const {CloudWatchClient, GetMetricStatisticsCommand} = require("@aws-sdk/client-cloudwatch");
 
 // Init the AWS EC2 Client
 const ec2Client = new EC2Client({
     region: process.env.AWS_REGION,
-    credentials:{
-        accessKeyId:process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey:process.env.AWS_SECRET_ACCESS_KEY,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     }
 });
 
 // Init the AWS CloudWatch Client
 const cloudWatchClient = new CloudWatchClient({
     region: process.env.AWS_REGION,
-    credentials:{
-        accessKeyId:process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey:process.env.AWS_SECRET_ACCESS_KEY,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     }
 })
 
@@ -68,7 +68,6 @@ async function getInstanceIdByIP(ipAddress) {
             console.log(`Found instance by public IP: ${instance.InstanceId}`);
             return instance.InstanceId;
         }
-
         console.log('No instance found with IP:', ipAddress);
         return null;
 
@@ -77,3 +76,58 @@ async function getInstanceIdByIP(ipAddress) {
         throw error;
     }
 }
+
+/**
+ * Get CPU utilization metrics from CloudWatch
+ * AWS Doc: https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_GetMetricStatistics.html
+ *
+ * @param {string} instanceId - EC2 instance ID
+ * @param {Date} startTime - Start time for metrics
+ * @param {Date} endTime - End time for metrics
+ * @param {number} period - Period in seconds (must be multiple of 60)
+ * @returns {Array} - Array of datapoints
+ */
+async function getCPUMetrics(instanceId, startTime, endTime, period) {
+    console.log(`Getting CPU metrics for instance: ${instanceId}`);
+    console.log(`Time range: ${startTime} to ${endTime}`);
+    console.log(`Period: ${period} seconds`);
+
+    const params = {
+        Namespace: 'AWS/EC2',
+        MetricName: 'CPUUtilization',
+        Dimensions: [
+            {
+                Name: 'InstanceId',
+                Value: instanceId
+            }
+        ],
+        StartTime: new Date(startTime),
+        EndTime: new Date(endTime),
+        Period: period,
+        Statistics: ['Average']
+    };
+
+    try {
+        const command = new GetMetricStatisticsCommand(params);
+        const response = await cloudWatchClient.send(command);
+
+        // Sort datapoints by timestamp
+        if (response.Datapoints) {
+            response.Datapoints.sort((a, b) =>
+                new Date(a.Timestamp) - new Date(b.Timestamp)
+            );
+        }
+
+        const datapoints = response.Datapoints || [];
+        return datapoints;
+
+    } catch (error) {
+        console.error('Error getting CPU metrics:', error);
+        throw error;
+    }
+}
+
+module.exports = {
+    getInstanceIdByIP,
+    getCPUMetrics
+};

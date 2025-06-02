@@ -4,14 +4,14 @@ require('dotenv').config();
 
 const app = express();
 
+// Import routes
+const metricsRoutes = require('./routes/metricsRoutes');
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({status: "OK", message: "Server started"});
-});
-
+// API routes
+app.use('/api', metricsRoutes);
 
 module.exports = app;
