@@ -1,25 +1,39 @@
-import logo from './logo.svg';
 import './App.css';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <div className="App">
+            <h1>AWS Instance CPU Monitor</h1>
+
+            <div className="form-container">
+                <form>
+                    <div className="form-row">
+                        <label>Time period:</label>
+                        <select>
+                            <option>Last Day</option>
+                            <option>Last 1 hour</option>
+                            <option>Last 3 hours</option>
+                            <option>Last 12 hours</option>
+                            <option>Last 24 hours</option>
+                            <option>Last 3 days</option>
+                            <option>Last 7 days</option>
+                        </select>
+                    </div>
+
+                    <div className="form-row">
+                        <label>Period:</label>
+                        <input type="text"/>
+                    </div>
+
+                    <div className="form-row">
+                        <label>IP Address:</label>
+                        <input type="text" placeholder="Enter IP Address"/>
+                        <button type="submit">Load</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
 }
 
 export default App;
