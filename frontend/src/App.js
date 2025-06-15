@@ -187,6 +187,7 @@ function App() {
                             type="text"
                             value={period}
                             onChange={(e) => setPeriod(e.target.value)}
+                            placeholder="seconds (e.g. 300)"
                         />
                     </div>
 
